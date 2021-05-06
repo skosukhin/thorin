@@ -7,68 +7,25 @@
 # Thorin_HAS_LLVM_SUPPORT | Thorin_HAS_RV_SUPPORT
 # AnyDSL_LLVM_LINK_SHARED
 
-cmake_minimum_required(VERSION 3.1)
+@PACKAGE_INIT@
 
-find_path(Thorin_DIR
-    NAMES thorin-config.cmake
-    PATHS
-        ${Thorin_DIR} ${AnyDSL_thorin_DIR} $ENV{Thorin_DIR}
-        ${CMAKE_CURRENT_LIST_DIR}
-        "@CMAKE_CURRENT_BINARY_DIR@"
-        "@CMAKE_INSTALL_PREFIX@"
-    PATH_SUFFIXES
-        share/anydsl/cmake
-)
+include("${CMAKE_CURRENT_LIST_DIR}/thorin-targets.cmake")
 
-find_path(Thorin_ROOT_DIR
-    NAMES cmake/thorin-config.cmake.in src/thorin/world.h
-    PATHS ${Thorin_DIR} $ENV{Thorin_DIR} ${Thorin_ROOT_DIR} "@CMAKE_CURRENT_SOURCE_DIR@" "@CMAKE_SOURCE_DIR@")
-list(APPEND CMAKE_MODULE_PATH "${Thorin_ROOT_DIR}/cmake/modules")
-
-find_path(Half_DIR NAMES half.hpp PATHS ${Half_DIR} $ENV{Half_DIR} "@Half_DIR@" "@Half_INCLUDE_DIR@")
-find_package(Half REQUIRED)
-
+set(Thorin_LIBRARIES AnyDSL::thorin)
 set(Thorin_HAS_LLVM_SUPPORT @LLVM_FOUND@)
 set(Thorin_HAS_RV_SUPPORT @RV_FOUND@)
 set(AnyDSL_LLVM_LINK_SHARED @AnyDSL_LLVM_LINK_SHARED@)
+set(AnyDSL_LLVM_DIR "@LLVM_DIR@")
+
+get_target_property(Thorin_INCLUDE_DIRS ${Thorin_LIBRARIES} INTERFACE_INCLUDE_DIRECTORIES)
 
 if(Thorin_HAS_LLVM_SUPPORT)
-    find_package(LLVM QUIET CONFIG PATHS ${LLVM_DIR} $ENV{LLVM_DIR} "@LLVM_DIR@" NO_DEFAULT_PATH)
-
-    if(Thorin_HAS_RV_SUPPORT)
-        find_package(RV QUIET)
-    endif()
+    find_package(LLVM REQUIRED CONFIG PATHS "@LLVM_DIR@" NO_DEFAULT_PATH)
+    # The command above reports on finding ZLIB, LibXml2, etc. but is silent
+    # regarding LLVM itself, which is a bit misleading. Therefore, we report
+    # explicitly:
+    message(STATUS "Found LLVM: ${LLVM_DIR} (found version \"${LLVM_PACKAGE_VERSION}\")")
 endif()
-
-find_path(Thorin_INCLUDE_DIR NAMES thorin/world.h PATHS ${Thorin_ROOT_DIR}/src)
-find_path(Thorin_CONFIG_DIR NAMES thorin/config.h
-    PATHS
-        ${Thorin_DIR} ${AnyDSL_thorin_DIR} $ENV{Thorin_DIR}
-        ${CMAKE_CURRENT_LIST_DIR}
-        "@CMAKE_CURRENT_BINARY_DIR@"
-        "@CMAKE_INSTALL_PREFIX@"
-    PATH_SUFFIXES
-        include
-        ../../../include
-)
-
-if(NOT TARGET thorin)
-    include(${Thorin_DIR}/thorin-exports.cmake)
-endif()
-set(Thorin_LIBRARY thorin)
-
-set(Thorin_DEPS_INCLUDE_DIRS ${Half_INCLUDE_DIRS} ${Thorin_CONFIG_DIR})
-if(LLVM_FOUND)
-    list(APPEND Thorin_DEPS_INCLUDE_DIRS ${LLVM_INCLUDE_DIRS})
-endif(LLVM_FOUND)
-if(RV_FOUND)
-    list(APPEND Thorin_DEPS_INCLUDE_DIRS ${RV_INCLUDE_DIRS})
-endif(RV_FOUND)
-
-set(Thorin_LIBRARIES ${Thorin_LIBRARY})
-set(Thorin_INCLUDE_DIRS ${Thorin_INCLUDE_DIR} ${Thorin_DEPS_INCLUDE_DIRS})
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(Thorin DEFAULT_MSG Thorin_DIR Thorin_INCLUDE_DIR)
-
-mark_as_advanced(Thorin_LIBRARY Thorin_INCLUDE_DIR Thorin_CONFIG_DIR Thorin_ROOT_DIR)
+find_package_handle_standard_args(Thorin DEFAULT_MSG Thorin_DIR)

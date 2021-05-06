@@ -7,31 +7,12 @@ else()
     add_compile_options("-Wall" "-Wextra")
 endif()
 
-# check for Half library
-find_package(Half REQUIRED)
-message(STATUS "Building with Half library from ${Half_INCLUDE_DIRS}.")
-include_directories(${Half_INCLUDE_DIRS})
+# Enables '#include "thorin/config.h"' when added to the header search paths
+# before the package is installed:
+set(THORIN_SRC_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
-if(LLVM_FOUND)
-    add_definitions(${LLVM_DEFINITIONS})
-    include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
-endif()
+# Enables '#include "thorin/some_header.h"' when added to the header search
+# paths before the package is installed:
+set(THORIN_SRC_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
-if(RV_FOUND)
-    include_directories(SYSTEM ${RV_INCLUDE_DIRS})
-endif()
-
-# check for colored terminal
-set(COLOR_TTY_AVAILABLE TRUE)
-if(WIN32)
-    # Windows console does not support ANSI escape codes
-    set(COLOR_TTY_AVAILABLE FALSE)
-endif()
-set(COLORIZE_OUTPUT ${COLOR_TTY_AVAILABLE} CACHE BOOL "Set to true to enable colored error messages")
-if(COLORIZE_OUTPUT)
-    add_definitions(-DCOLORIZE_LOG)
-endif()
-
-# build thorin lib
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 add_subdirectory(thorin)
