@@ -47,7 +47,8 @@ private:
     void insert(const char* str);
 
     const char* str_;
-    static Table table_;
+
+    static Table& getTable_() { static Table t_; return t_; }
 };
 
 inline Symbol operator+(Symbol s1, Symbol s2) { return std::string(s1.c_str()) + s2.str(); }

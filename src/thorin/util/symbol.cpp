@@ -5,8 +5,6 @@
 
 namespace thorin {
 
-Symbol::Table Symbol::table_;
-
 #ifdef _MSC_VER
 static const char* duplicate(const char* s) { return _strdup(s); }
 #else // _MSC_VER
@@ -14,6 +12,7 @@ static const char* duplicate(const char* s) { return strdup(s); }
 #endif // _MSC_VER
 
 void Symbol::insert(const char* s) {
+    static Symbol::Table table_ = getTable_();
     auto i = table_.map.find(s);
     if (i == table_.map.end())
         i = table_.map.emplace(duplicate(s)).first;
